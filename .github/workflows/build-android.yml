@@ -41,16 +41,21 @@ jobs:
           if start >= 0:
               end=s.find('</article>', start)
               if end >= 0: s=s[:start]+s[end+10:]
-          s=s.replace('</head>','<link rel="stylesheet" href="assets/settings-patch.css?v=1"></head>')
-          s=s.replace('</body>','<script src="assets/settings-patch.js?v=1"></script></body>')
+          s=s.replace('</head>','<link rel="stylesheet" href="assets/settings-patch.css?v=2"></head>')
+          s=s.replace('</body>','<script src="assets/settings-patch.js?v=2"></script><script src="assets/familyhub-fixes.js?v=1"></script></body>')
           p.write_text(s)
           PY
 
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Enable Android immersive fullscreen
+      - name: Enable Android network and immersive fullscreen
         run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          if ! grep -q 'android.permission.INTERNET' "$MANIFEST"; then
+            sed -i 's#<manifest #<manifest #g' "$MANIFEST"
+            sed -i '/<application/i\    <uses-permission android:name="android.permission.INTERNET" />' "$MANIFEST"
+          fi
           cat > android/app/src/main/java/uk/familyhub/app/MainActivity.java <<'JAVA'
           package uk.familyhub.app;
           import android.os.Build;
