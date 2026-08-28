@@ -37,12 +37,15 @@ jobs:
           from pathlib import Path
           p=Path('www/index.html')
           s=p.read_text()
-          start=s.find('<article class="card settings-card backup-card"><h3>💾 Backup & restore</h3>')
-          if start >= 0:
-              end=s.find('</article>', start)
-              if end >= 0: s=s[:start]+s[end+10:]
-          s=s.replace('</head>','<link rel="stylesheet" href="assets/settings-patch.css?v=2"></head>')
-          s=s.replace('</body>','<script src="assets/settings-patch.js?v=2"></script><script src="assets/familyhub-fixes.js?v=1"></script></body>')
+          # Keep the Backup & Restore DOM in place so app.js can bind all of its
+          # handlers. It is hidden by settings-patch.css instead of being removed
+          # before JavaScript starts, which previously stopped initialization.
+          if 'assets/settings-patch.css' not in s:
+              s=s.replace('</head>','<link rel="stylesheet" href="assets/settings-patch.css?v=3"></head>')
+          if 'assets/settings-patch.js' not in s:
+              s=s.replace('</body>','<script src="assets/settings-patch.js?v=3"></script></body>')
+          if 'assets/familyhub-fixes.js' not in s:
+              s=s.replace('</body>','<script src="assets/familyhub-fixes.js?v=2"></script></body>')
           p.write_text(s)
           PY
 
@@ -53,7 +56,6 @@ jobs:
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           if ! grep -q 'android.permission.INTERNET' "$MANIFEST"; then
-            sed -i 's#<manifest #<manifest #g' "$MANIFEST"
             sed -i '/<application/i\    <uses-permission android:name="android.permission.INTERNET" />' "$MANIFEST"
           fi
           cat > android/app/src/main/java/uk/familyhub/app/MainActivity.java <<'JAVA'
