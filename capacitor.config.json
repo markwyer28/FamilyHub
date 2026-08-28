@@ -1,0 +1,7 @@
+{
+  "appId": "uk.familyhub.app",
+  "appName": "Family Hub",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}
